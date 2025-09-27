@@ -13,9 +13,7 @@ permissions:
   security-events: write
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    env:
+    with:
       JAVA_VERSION: '17'
       JAVA_BUILD_COMMAND: "./gradlew build"
       JAVA_DEPS_COMMAND: "./gradlew clean --refresh-dependencies"
