@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       JAVA_VERSION: '17'
-      JAVA_TEST_COMMAND: "./gradlew test jacocoTestReport"
       JAVA_BUILD_COMMAND: "./gradlew build"
       JAVA_DEPS_COMMAND: "./gradlew clean --refresh-dependencies"
       SCA_TOOL: 'snyk'
