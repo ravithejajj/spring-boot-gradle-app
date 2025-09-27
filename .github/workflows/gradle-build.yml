@@ -61,6 +61,9 @@ jobs:
       - name: Run Snyk test
         run: snyk test --all-sub-projects --package-manager=gradle --json-file-output=snyk.sarif
 
+      - name: Run Snyk and output SARIF
+        run: snyk test --all-projects --sarif > snyk.sarif
+
       # Upload SARIF report for GitHub code scanning
       - name: Upload Snyk SARIF
         uses: github/codeql-action/upload-sarif@v3
