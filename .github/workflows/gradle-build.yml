@@ -11,28 +11,68 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      JAVA_VERSION: '17'
+      JAVA_TEST_COMMAND: "./gradlew test jacocoTestReport"
+      JAVA_BUILD_COMMAND: "./gradlew build"
+      JAVA_DEPS_COMMAND: "./gradlew clean --refresh-dependencies"
+      SCA_TOOL: 'snyk'
+      SAST_TOOL: 'snyk'
+      CONTAINER_SCAN_TOOL: 'snyk'
 
     steps:
-      - uses: actions/checkout@v4
+      # Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+      # Setup JDK
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
 
-      - run: chmod +x gradlew
+      # Grant execute permission for Gradle wrapper
+      - name: Grant Gradle wrapper permission
+        run: chmod +x gradlew
 
-      - run: ./gradlew clean build
+      # Resolve dependencies
+      - name: Resolve dependencies
+        run: ${{ env.JAVA_DEPS_COMMAND }}
 
+      # Run tests
+      - name: Run tests
+        run: ${{ env.JAVA_TEST_COMMAND }}
+
+      # Build project
+      - name: Build project
+        run: ${{ env.JAVA_BUILD_COMMAND }}
+
+      # ---- Snyk Setup ----
       - name: Setup Snyk CLI
         uses: snyk/actions/setup@master
         with:
           snyk-token: ${{ secrets.SNYK_TOKEN }}
 
+      # ---- Optional: Verify Snyk auth ----
+      - name: Verify Snyk authentication
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+
+      # Run Snyk test (SCA + SAST)
       - name: Run Snyk test
         run: snyk test --all-sub-projects --package-manager=gradle --json-file-output=snyk.sarif
 
-      - name: Upload SARIF report
+      # Upload SARIF report for GitHub code scanning
+      - name: Upload Snyk SARIF
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk.sarif
+
+      # ---- Optional Docker scan ----
+      - name: Build Docker image
+        if: ${{ env.CONTAINER_SCAN_TOOL == 'snyk' }}
+        run: docker build -t ${DOCKER_REGISTRY_NAME}/spring-boot-gradle-app:latest .
+
+      - name: Snyk container scan
+        if: ${{ env.CONTAINER_SCAN_TOOL == 'snyk' }}
+        run: snyk container test ${DOCKER_REGISTRY_NAME}/spring-boot-gradle-app:latest
