@@ -18,7 +18,6 @@ jobs:
       SCA_TOOL: 'snyk'
       SAST_TOOL: 'snyk'
       CONTAINER_SCAN_TOOL: 'snyk'
-      DOCKER_REGISTRY_NAME: "cvs-caremark-docker"
 
     steps:
       - name: Checkout repository
