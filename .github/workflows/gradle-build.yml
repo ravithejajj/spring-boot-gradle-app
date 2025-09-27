@@ -8,6 +8,10 @@ on:
     branches:
       - main
 
+  permissions:
+    contents: read
+    security-events: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -69,6 +73,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk.sarif
+          token: ${{ secrets.GH_PAT }}
 
       # ---- Optional Docker scan ----
       - name: Build Docker image
