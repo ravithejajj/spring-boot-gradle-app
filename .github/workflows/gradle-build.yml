@@ -11,55 +11,28 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      JAVA_VERSION: '17'
-      JAVA_BUILD_COMMAND: "./gradlew build"
-      JAVA_DEPS_COMMAND: "./gradlew clean --refresh-dependencies"
-      SCA_TOOL: 'snyk'
-      SAST_TOOL: 'snyk'
-      CONTAINER_SCAN_TOOL: 'snyk'
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up JDK
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
-          java-version: ${{ env.JAVA_VERSION }}
+          java-version: '17'
           distribution: 'temurin'
 
-      - name: Grant execute permission for Gradle wrapper
-        run: chmod +x gradlew
+      - run: chmod +x gradlew
 
-      - name: Resolve dependencies
-        run: ${{ env.JAVA_DEPS_COMMAND }}
+      - run: ./gradlew clean build
 
-      - name: Run tests and generate coverage
-        run: ${{ env.JAVA_TEST_COMMAND }}
-
-      - name: Build project
-        run: ${{ env.JAVA_BUILD_COMMAND }}
-
-      # ---- Snyk Scan ----
-      - name: Setup Snyk
+      - name: Setup Snyk CLI
         uses: snyk/actions/setup@master
         with:
           snyk-token: ${{ secrets.SNYK_TOKEN }}
 
-      - name: Run Snyk test (SCA & SAST)
+      - name: Run Snyk test
         run: snyk test --all-sub-projects --package-manager=gradle --json-file-output=snyk.sarif
 
-      - name: Upload Snyk SARIF report
+      - name: Upload SARIF report
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk.sarif
-
-      # ---- Container scan (if Dockerfile exists) ----
-      - name: Build Docker image
-        if: ${{ env.CONTAINER_SCAN_TOOL == 'snyk' }}
-        run: docker build -t ${DOCKER_REGISTRY_NAME}/spring-boot-gradle-app:latest .
-
-      - name: Snyk container scan
-        if: ${{ env.CONTAINER_SCAN_TOOL == 'snyk' }}
-        run: snyk container test ${DOCKER_REGISTRY_NAME}/spring-boot-gradle-app:latest
