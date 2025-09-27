@@ -8,9 +8,14 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  security-events: write
 
 jobs:
-    with:
+  build:
+    runs-on: ubuntu-latest
+    env:
       JAVA_VERSION: '17'
       JAVA_BUILD_COMMAND: "./gradlew build"
       JAVA_DEPS_COMMAND: "./gradlew clean --refresh-dependencies"
@@ -30,9 +35,6 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
 
-      # Grant execute permission for Gradle wrapper
-      - name: Grant Gradle wrapper permission
-        run: chmod +x gradlew
 
       # Resolve dependencies
       - name: Resolve dependencies
