@@ -65,7 +65,7 @@
 ##############################################################################
 
 # Attempt to set APP_HOME
-
+chmod +x ./gradlew
 # Resolve links: $0 may be a link
 app_path=$0
 
